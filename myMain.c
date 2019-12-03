@@ -10,15 +10,18 @@
 #include <stdbool.h>
 #include <regex.h>
 #include <stdarg.h>
-#define PROC_FILESYSTEM "/proc"
-#define STAT_FILE "stat"
-#define CMD_FILE "cmdline"
+#include <ftw.h>
+#define PROC_FILESYSTEM "/proc" // Linux(Ubuntu) Process List Folder
+#define STAT_FILE "stat"		// We can find buffer that have process information in stat file.
+#define CMD_FILE "cmdline" 
 #define CLR_DEFAULT "\x1b[0m"
 #define CLR_BOLD "\x1b[1m"
 #define CLR_RED "\x1b[31m"
 #define MAX_FD 15				// Maximum number of file descriptors to use
 #define BLOCK_SIZE 4096
 #define REG_MAX_MATCH 8
+
+int fd;
 
 unsigned int defunctCount = 0;
 
@@ -50,15 +53,45 @@ regmatch_t regMatch[REG_MAX_MATCH];
 int cprintf(char *color, char *format, ...) {
 	fprintf(stderr, "%s", color);
 	va_start(vargs, format);
+	// variable argument will be used.
 	vfprintf(stderr, format, vargs);
 	va_end(vargs);
 	fprintf(stderr, "%s", CLR_DEFAULT);
 	return EXIT_SUCCESS;
 }
 
+static char* readFile(char *format, ...) {
+	va_start(vargs, format);
+	// variable argument will be used.
+	vsnprintf(fileName, sizeof(fileName), format, vargs);
+	// format will be put in char* called by fileName.
+	va_end(vargs);
+	
+	fd = open(fileName, O_RDONLY); // 뒤에 옵션 없어도 되지 않을까?
+	//test
+	//             ReadOnly. STAT INODE Read User, Group, Other.
+	// #include <sys/stat.h>
+	
+	if(fd == -1) return NULL;
+	fileContent[0] = '\0';
+
+	for(int i = 0; read(fd, &buff, sizeof(buff)) != 0; i++) {
+		fileContent[i] = buff;
+	}
+	
+	close(fd);
+	return fileContent;
+}
+
 int checkProcs() {
 	cprintf(CLR_BOLD,"%-6s\t%-6s\t%-2s\t%16.16s %s\n",
 			"PID", "PPID", "STATE", "NAME", "COMMAND");
+	/*if(nftw(PROC_FILESYSTEM, procEntryRecv, // #include <ftw.h>
+				maxFD, FTW_PHYS)) {
+		cprintf(CLR_RED, "ftw failed.\n"); // fail to search.
+		return EXIT_FAILURE;
+	}*/
+	
 	for(unsigned int i = 0; i < defunctCount; i++) {
 		cprintf(CLR_BOLD, "\n[%s%d%s]", CLR_RED,
 				i+1, CLR_DEFAULT);
@@ -67,6 +100,8 @@ int checkProcs() {
 				"     %u\n PPID:     %u\n State:   %s\n",
 				defunctProcs[i].name, defunctProcs[i].pid,
 				defunctProcs[i].ppid, defunctProcs[i].state);
+		if (strcmp(defunctProcs[i].cmd, "")) fprintf(stderr,
+				" Command: %s\n", defunctProcs[i].cmd);
 	}
 	return EXIT_SUCCESS;
 }

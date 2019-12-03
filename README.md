@@ -37,7 +37,7 @@ Process Diagnostician (프로세스 진단사)
 #### 개발 환경 : ubuntu-18.04.3-desktop-amd64 설치 패키지 권장 옵션으로 설치.
 #### 빌드 시 필요한 패키지 목록 : 추후 공지.
 #### 프로그램 동작에 필요한 패키지 목록 : build-essential
-##### * build-essential 설치 방법 : 위의 방법과 동일하나, net-tools을 build-essential로 바꿔 하면 된다.
+##### * build-essential 설치 방법 : 터미널에서 sudo apt install build-essential 입력 후 설치하면 된다.
 
 <br/>
 

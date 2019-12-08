@@ -92,9 +92,23 @@ zps 소스 사용을 시도하면서 여러 오류가 발생했다.
 <br/>
 > **Solution** : ftw.h 헤더파일(nftw.h 아니다.)을 include 해주면 된다. 즉, #include <ftw.h> 를 추가하면 된다.
 
-<br/>**Error** : O_RDONLY, S_IRUSR, S_IRGRP, S_IROTH 가 undeclared 오류 뜬다.
+<br/>**Error** : S_IRUSR, S_IRGRP, S_IROTH 가 undeclared 오류 뜬다.
 <br/>
 > **Solution** : #include <sys/stat.h> 추가하면 된다.
+
+<br/>
+
+**\<2019-12-08 19:27\>**
+open 함수 사용할 때와 nftw 함수를 사용할 때, 조심해야 한다.
+<br/>
+
+<br/>**Error** : O_RDONLY 가 undeclared 오류 뜬다.
+<br/>
+> **Solution** : #include <fcntl.h> 추가하면 된다.
+
+<br/>**Error** : #include <ftw.h> 를 추가해도 nftw 함수 사용할 때, FTW_PHYS 과 같은 변수들이 undeclared 오류가 뜬다.
+<br/>
+> **Solution** : #include <ftw.h> 헤더 파일을 추가하기 전에 (줄 위에) #define _XOPEN_SOURCE 700 를 추가해야 한다. XOPEN 버전이 여러가지이므로, 버전을 defining 해놔야 헤더파일이 제대로 추가되는 것이다.
 
 <br/>
 
@@ -113,3 +127,6 @@ zps 소스 사용을 시도하면서 여러 오류가 발생했다.
 <br/>
 <br/>
 **\<2019-12-03 23:19\>** 리눅스 프로세스 시스템 폴더가 /proc 이고 그 안 stat 이라는 파일에 프로세스 정보들을 가지고 있는 버퍼가 있다는 것을 알았다. nftw와 readFile 함수를 추가해 프로세스 시스템 폴더를 분석할 수 있는 밑바탕을 준비할 수 있었다. 다음 커밋 때는 procEntryRecv, getProcStats, formatStatContent 함수를 이해하고 추가할 것이다. 이것까지 완성하면 프로세스 ID 등 프로세스 정보를 확실하게 취합할 수 있다. 이것을 이용하여 프로세스를 진단하는 기능(VirusTotal 이용)까지 구현해야 한다.
+<br/>
+<br/>
+**\<2019-12-08 19:27\>** procEntryRecv 함수와 getProcStats 함수를 완성했다. nftw(file tree walk) 함수를 이용해서 모든 프로세스 폴더에 접근한다. 각각의 폴더에 접근하는데, /proc/pid/stat 파일을 분석하여 프로세스 정보를 알아낸다.

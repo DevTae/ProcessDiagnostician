@@ -22,6 +22,7 @@
 #define CLR_DEFAULT "\x1b[0m"
 #define CLR_BOLD "\x1b[1m"
 #define CLR_RED "\x1b[31m"
+#define CLR_BOLDGREEN "\x1b[1m\x1b[32m"
 #define MAX_FD 15				// Maximum number of file descriptors to use
 #define BLOCK_SIZE 4096
 #define REG_MAX_MATCH 8
@@ -29,8 +30,6 @@
 #define STATE_ZOMBIE "Z"
 
 int fd;
-
-unsigned int defunctCount = 0;
 
 unsigned int maxFD = MAX_FD; 	// Maximum number of file describtors to use
 char buff; 						// buffer
@@ -52,10 +51,7 @@ typedef struct {
 	bool defunct;
 } ProcStats;
 
-ProcStats defunctProcs[BLOCK_SIZE/4];
 va_list vargs;
-regex_t regex;					// Regex struct
-regmatch_t regMatch[REG_MAX_MATCH];
 
 static int cprintf(char *color, char *format, ...) {
 	fprintf(stderr, "%s", color);
@@ -144,21 +140,41 @@ int checkProcs() {
 		return EXIT_FAILURE;
 	}
 	
-	for(unsigned int i = 0; i < defunctCount; i++) {
-		cprintf(CLR_BOLD, "\n[%s%d%s]", CLR_RED,
-				i+1, CLR_DEFAULT);
-		// Print process's stats.
-		fprintf(stderr, "\n Name:     %s\n PID:"
-				"     %u\n PPID:     %u\n State:   %s\n",
-				defunctProcs[i].name, defunctProcs[i].pid,
-				defunctProcs[i].ppid, defunctProcs[i].state);
-		if (strcmp(defunctProcs[i].cmd, "")) fprintf(stderr,
-				" Command: %s\n", defunctProcs[i].cmd);
-	}
 	return EXIT_SUCCESS;
 }
 
 int main(void) {
-	checkProcs();
+	while(true) {
+		cprintf(CLR_BOLDGREEN, "\n\n\n%40s\n%40s\n%40s\n%40s\n%40s\n\n", 
+				"----------------------------------------",
+				"-      Process Diagnostician 1.0       -",
+				"-          Made By ahdelron.           -",
+				"-            BaseSrc : zps             -",
+				"----------------------------------------");
+		cprintf(CLR_DEFAULT, "%s\n%s\n%s\n%s\n%s\n",
+				"Select the number of operating options you want!",
+				"1. View all processes.",
+				"2. Diagnose Process.",
+				"3. Show help.",
+				"4. Quit.");
+		cprintf(CLR_RED, "%s", "SELECT THE NUMBER : ");
+		int c;
+		scanf("%d", &c);
+		switch(c) {
+			case 1:
+				checkProcs();
+				break;
+			case 2:
+				cprintf(CLR_DEFAULT, "%s\n", "Not implemented");
+				break;
+			case 3:
+				break;
+			case 4:
+				exit(0);
+			default:
+				cprintf(CLR_RED, "%s\n", "invalid input.");
+				continue;
+		}
+	}
 	return EXIT_SUCCESS;
 }

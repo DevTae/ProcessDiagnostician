@@ -112,6 +112,23 @@ open 함수 사용할 때와 nftw 함수를 사용할 때, 조심해야 한다.
 
 <br/>
 
+**\<2019-12-21 16:47\>**
+<br/>
+
+<br/>**Error** : switch문 안에서 int 변수를 선언했더니 "a label can only be part of a statement and a declaration is not a statement." 컴파일 오류가 발생했다.
+<br/>
+> **Solution** : int 변수를 선언하는 부분을 { } (Parentheses)를 추가해주면 된다. Compound Statement에 근거에 로컬 변수로 만들어주었더니 잘 컴파일 되었다.
+
+<br/>**Error** : scanf에 대해 문자('a')를 입력하면 main 함수에 무한 루프 현상이 생긴다.
+<br/>
+> **Solution** : scanf에서 입력 받은 후 남아있는 '\n' 값이 버퍼에 남아 있기 때문에 생긴 현상이다. while문 끝 쪽에 getchar() 함수를 한번 사용해줌으로써 해결할 수 있었다.
+
+<br/>**Error** : char* 변수에 "file /proc/"을 추가해놓은 상태에서 strcat 함수를 사용했더니 Segmentation Error가 뜬다.
+<br/>
+> **Solution** : "file /proc/" 주솟값을 char* 에 넘겨주면 char*이 가리키는 주솟값은 text segment 부분이기 때문에 수정이 불가능하다. 위의 상황에서 수정을 하려고 했으니 오류가 뜬 것이다. 상황에 맞게 char* 로 받지 않고 값을 복사하는 char[]로 변경하였더니 오류가 발생하지 않았다.
+
+<br/>
+
 ### 7. ** 기능 구현 일지
 --------------------------
 **\<2019-11-13 22:16\>** Terminal에서 나오는 결과 값을 구하고 싶다. 리눅스API를 사용할까? 아니면 터미널의 출력 값을 파일로 받아올까? ( '> .txt' 이용)
@@ -130,3 +147,6 @@ open 함수 사용할 때와 nftw 함수를 사용할 때, 조심해야 한다.
 <br/>
 <br/>
 **\<2019-12-08 19:27\>** procEntryRecv 함수와 getProcStats 함수를 완성했다. nftw(file tree walk) 함수를 이용해서 모든 프로세스 폴더에 접근한다. 각각의 폴더에 접근하는데, /proc/pid/stat 파일을 분석하여 프로세스 정보를 알아낸다.
+<br/>
+<br/>
+**\<2019-12-21 17:43\>** 바이러스토탈 API를 통해 파이썬(vtapi_post.py, vtapi_get.py) 소스 코드 작성을 완료했다. vtapi_post.py는 진단을 위해 파일을 보내주는 모듈이고, vtapi_get.py는 진단 결과를 출력해주는 모듈이다. 그리고 프로세스 실행 파일의 위치가 어디 있는지 알아내는 함수를 만들었다.

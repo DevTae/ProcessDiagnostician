@@ -54,6 +54,11 @@ typedef struct {
 
 va_list vargs;
 
+char path_info[1024];
+// During c <=> python bidirection process, storing data to below variables.
+char scan_info[1024];
+char* resource_code = NULL;
+
 static int cprintf(char *color, char *format, ...) {
 	fprintf(stderr, "%s", color);
 	va_start(vargs, format);
@@ -167,15 +172,46 @@ char* itoa(int v) {
 	return a;
 }
 
-int diagnose(int pid) {
-	FILE *fp;
+int python_post_cmd(char* argv) {
+	FILE *fp;	
+	char p_arg[1024] = "python vtapi_post.py ";
+	strcat(p_arg, argv);
+	// Open the command for reading.
+	fp = popen(p_arg, "r");
+	if(fp == NULL) {
+		cprintf(CLR_RED, "Failed to run command.\n");
+		return EXIT_FAILURE;
+	}
+
+	while(fgets(scan_info, sizeof(scan_info), fp) != NULL) {
+		if(strstr(scan_info, "resource      :") != NULL) {
+			resource_code = (char*)malloc(sizeof(char)*1024);
+			strcpy(resource_code, scan_info);
+		}
+		cprintf(CLR_DEFAULT, "%s", scan_info);
+	}
 	
-	char* cp_pid = itoa(pid);
-	char p_arg[] = "file /proc/";
-	strcat(p_arg, cp_pid);
-	strcat(p_arg, "/exe");
-	free(cp_pid);
+	if(strstr(resource_code, "resource      :") == NULL) {
+		return EXIT_FAILURE;
+	} else {
+		resource_code += (size_t)16;
+	}
 	
+	int i;
+	for(i = 0; *(resource_code+i) != '\n'; i++);
+	*(resource_code+i) = '\0';
+
+	printf("\n");
+
+	pclose(fp);
+	
+	return EXIT_SUCCESS;
+}
+
+int python_get_cmd(char* argv) {
+	FILE *fp;	
+	char p_arg[1024] = "python vtapi_get.py ";
+	strcat(p_arg, argv);
 	// Open the command for reading.
 	fp = popen(p_arg, "r");
 	if(fp == NULL) {
@@ -183,13 +219,81 @@ int diagnose(int pid) {
 		return EXIT_FAILURE;
 	}
 	
-	char path_info[1024];
-	fgets(path_info, sizeof(path_info), fp);
+	char* pin;
+	while(fgets(scan_info, sizeof(scan_info), fp) != NULL) {
+		if(*scan_info == 'T')
+			return EXIT_FAILURE;
+		cprintf(CLR_DEFAULT, "%s", scan_info);
+	}
 	
-	printf("%s", path_info); // modify
 	pclose(fp);
 	
 	return EXIT_SUCCESS;
+}
+
+int result_file_cmd(int pid) {
+	FILE *fp;	
+	char* cp_pid = itoa(pid);
+	char p_arg[1024] = "file /proc/";
+	strcat(p_arg, cp_pid);
+	strcat(p_arg, "/exe");
+	free(cp_pid);
+
+	// Open the command for reading.
+	fp = popen(p_arg, "r");
+	if(fp == NULL) {
+		cprintf(CLR_RED, "Failed to run command.\n");
+		return EXIT_FAILURE;
+	}
+
+	fgets(path_info, sizeof(path_info), fp);
+	for(int i = 0; i < 1024; i++) { // '\n' to '\0'
+		if(path_info[i] == '\n') {
+			path_info[i] = '\0';
+			break;
+		}
+	}
+
+	//cprintf(CLR_DEFAULT, "%s\n", path_info);
+	pclose(fp);
+	return EXIT_SUCCESS;
+}
+
+int diagnose(int pid) {
+	result_file_cmd(pid);
+	char* file_path;
+	if((file_path = strstr(path_info, ": symbolic link to ")) == NULL) {
+		cprintf(CLR_RED, "%s\n", "Program cannot be founded.");
+		return EXIT_FAILURE;
+	} else { // when program is founded.
+		cprintf(CLR_BOLD, "%s\n", "Suspected program has been founded. Continue the process, So that this program do diagnosis by using VirusTotal API.");
+		//  processing the char*
+		file_path += (size_t)19; // as like using substring
+		printf("filepath is %s\n", file_path);
+		// collecting file path
+		if(python_post_cmd(file_path) == EXIT_SUCCESS) {
+			printf("resource data is %s\n", resource_code);
+			int i;
+			for(i = 0; *(resource_code+i) != '\n'; i++);		
+			*(resource_code+i) = '\0';
+			// Getting dianosis process
+			cprintf(CLR_BOLD, "%s\n", "- You have only four chances that can see scan data per minute.");
+			while(true) {
+				cprintf(CLR_BLUE, "\n%s ", "Do you want to see scan result? [Enter 'y']");
+				int trash; // waiting
+				scanf("%d", &trash);
+				getchar();
+				if(python_get_cmd(resource_code) == EXIT_FAILURE) {
+					cprintf(CLR_DEFAULT, "%s", "The result hasn't been revealed. Please try this after for a moment.");
+					continue;
+				} else break;
+			}
+			free(resource_code);
+		} else {
+			cprintf(CLR_RED, "\n%s\n", "Processing that uploads the suspected file failed.");
+			return EXIT_FAILURE;
+		}
+	}
 }
 
 int main(void) {
@@ -207,7 +311,7 @@ int main(void) {
 				"4. Quit.");
 	while(true) {
 		cprintf(CLR_RED, "%s", "\nSelect the mode. : ");
-		int c;
+		int c = 0;
 		scanf("%d", &c);
 		switch(c) {
 			case 1:
@@ -216,17 +320,17 @@ int main(void) {
 			case 2:
 				//cprintf(CLR_DEFAULT, "\n%s\n", "2: Not implemented.");
 				{
-				int pid;
-				scanf("%d", &pid);
-				diagnose(pid);
+					int pid;
+					scanf("%d", &pid);
+					diagnose(pid);
 				}
 				break;
 			case 3:
 				cprintf(CLR_RED, "\n%s",
-						"-PROCESS DIAGNOSTICIAN MANUAL-");
+						"--PROCESS DIAGNOSTICIAN MANUAL--");
 				cprintf(CLR_DEFAULT, "\n%s\n%s",
-						" Fisrt, view all processes.",
-						" Second, if you find suspected process, you would enter the command \"2 pid\" as like below.");
+						" Fisrt, View all processes.",
+						" Second, If you find suspected process, you should enter the command \"2 pid\" as like below.");
 				cprintf(CLR_BLUE, "\n%s\n", "> 2 1234");
 				break;
 			case 4:
@@ -237,5 +341,6 @@ int main(void) {
 		}
 		getchar(); // clean the buffer
 	}
+	
 	return EXIT_SUCCESS;
 }

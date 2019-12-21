@@ -4,6 +4,7 @@
  * Made by ahdelron.
  */
 
+#define VERSION 1.0.0
 #define _XOPEN_SOURCE 700		// POSIX.1-2008 + XSI (SuSv4)
 #include <stdio.h>
 #include <stdlib.h>
@@ -57,7 +58,8 @@ va_list vargs;
 char path_info[1024];
 // During c <=> python bidirection process, storing data to below variables.
 char scan_info[1024];
-char* resource_code = NULL;
+char resource_code[1024];
+char url[1024];
 
 static int cprintf(char *color, char *format, ...) {
 	fprintf(stderr, "%s", color);
@@ -145,7 +147,8 @@ int checkProcs() {
 		cprintf(CLR_RED, "ftw failed.\n"); // fail to search.
 		return EXIT_FAILURE;
 	}
-	
+	cprintf(CLR_BOLD,"%-6s\t%-6s\t%-2s\t%16.16s %s\n",
+			"PID", "PPID", "STATE", "NAME", "COMMAND");
 	return EXIT_SUCCESS;
 }
 
@@ -184,23 +187,16 @@ int python_post_cmd(char* argv) {
 	}
 
 	while(fgets(scan_info, sizeof(scan_info), fp) != NULL) {
-		if(strstr(scan_info, "resource      :") != NULL) {
-			resource_code = (char*)malloc(sizeof(char)*1024);
-			strcpy(resource_code, scan_info);
+		if(strstr(scan_info, "permalink     :") != NULL) {
+			strcpy(url, scan_info);
 		}
 		cprintf(CLR_DEFAULT, "%s", scan_info);
 	}
 	
-	if(strstr(resource_code, "resource      :") == NULL) {
+	if(strstr(url, "permalink     :") == NULL) {
 		return EXIT_FAILURE;
-	} else {
-		resource_code += (size_t)16;
 	}
 	
-	int i;
-	for(i = 0; *(resource_code+i) != '\n'; i++);
-	*(resource_code+i) = '\0';
-
 	printf("\n");
 
 	pclose(fp);
@@ -221,8 +217,8 @@ int python_get_cmd(char* argv) {
 	
 	char* pin;
 	while(fgets(scan_info, sizeof(scan_info), fp) != NULL) {
-		if(*scan_info == 'T')
-			return EXIT_FAILURE;
+		//if(*scan_info == 'T')
+		//	return EXIT_FAILURE;
 		cprintf(CLR_DEFAULT, "%s", scan_info);
 	}
 	
@@ -263,15 +259,28 @@ int diagnose(int pid) {
 	result_file_cmd(pid);
 	char* file_path;
 	if((file_path = strstr(path_info, ": symbolic link to ")) == NULL) {
-		cprintf(CLR_RED, "%s\n", "Program cannot be founded.");
+		cprintf(CLR_BLUE, "%s\n", "Program cannot be founded.");
 		return EXIT_FAILURE;
 	} else { // when program is founded.
-		cprintf(CLR_BOLD, "%s\n", "Suspected program has been founded. Continue the process, So that this program do diagnosis by using VirusTotal API.");
+		cprintf(CLR_BOLD, "%s\n", "Suspected program has been founded. Continue the process, So that this program do diagnosis by using VirusTotal.");
 		//  processing the char*
 		file_path += (size_t)19; // as like using substring
-		printf("filepath is %s\n", file_path);
+		printf("File Path is %s.\n", file_path);
 		// collecting file path
 		if(python_post_cmd(file_path) == EXIT_SUCCESS) {
+			cprintf(CLR_BOLDGREEN, "%s\n", "If you want to see your selected program's result, go to 'permalink' content.");
+			/* method1. open by browser
+			char cmd[1024] = "x-www-browser ";
+			int i = 0;
+			for(; url[i] != '\n'; i++);
+			url[i] = '\0';
+			int cmd_index = 14;
+			for(i = 16; url[i] != '\0';)
+				cmd[cmd_index++] = url[i++];
+			cmd[cmd_index] = '\0';
+			system(strcat(cmd, url));
+			*/
+			/* method2.  diagnose by api, but isn't performed well in here.
 			printf("resource data is %s\n", resource_code);
 			int i;
 			for(i = 0; *(resource_code+i) != '\n'; i++);		
@@ -289,8 +298,10 @@ int diagnose(int pid) {
 				} else break;
 			}
 			free(resource_code);
+			*/
 		} else {
-			cprintf(CLR_RED, "\n%s\n", "Processing that uploads the suspected file failed.");
+			cprintf(CLR_BLUE, "\n%s\n", "Processing uploading the suspected file failed.");
+			cprintf(CLR_BOLD, "%s\n", "and you have only four chances that can see scan data per minute.");
 			return EXIT_FAILURE;
 		}
 	}
@@ -299,7 +310,7 @@ int diagnose(int pid) {
 int main(void) {
 	cprintf(CLR_BOLDGREEN, "\n%40s\n%40s\n%40s\n%40s\n%40s\n", 
 				"----------------------------------------",
-				"-      Process Diagnostician 1.0       -",
+				"-     Process Diagnostician 1.0.0      -",
 				"-          Made By ahdelron.           -",
 				"-            BaseSrc : zps             -",
 				"----------------------------------------");
@@ -326,7 +337,7 @@ int main(void) {
 				}
 				break;
 			case 3:
-				cprintf(CLR_RED, "\n%s",
+				cprintf(CLR_BOLDGREEN, "\n%s",
 						"--PROCESS DIAGNOSTICIAN MANUAL--");
 				cprintf(CLR_DEFAULT, "\n%s\n%s",
 						" Fisrt, View all processes.",
@@ -337,7 +348,7 @@ int main(void) {
 				exit(0);
 				break;
 			default:
-				cprintf(CLR_RED, "\n%s\n", "You entered invalid input.");
+				cprintf(CLR_BLUE, "\n%s\n", "You entered invalid input.");
 		}
 		getchar(); // clean the buffer
 	}

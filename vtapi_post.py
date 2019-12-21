@@ -1,10 +1,11 @@
 '''
 VirusTotal API
-vtapi_post.c
+vtapi_post.py
 '''
 
 import requests
 import sys
+import json
 
 url = 'https://www.virustotal.com/vtapi/v2/file/scan'
 # My api key # Don't use this key on anything program else.
@@ -17,5 +18,10 @@ file_to_send = open(file_path_name, 'rb')
 files = {'file': (file_path_name, file_to_send)}
 
 response = requests.post(url, files=files, params=params)
+data = json.loads(response.text)
+keys = data.keys()
 
-print(response.json())
+for key in keys:
+	print "%-13s : %s" % (key, data[key])
+
+#print(response.json())

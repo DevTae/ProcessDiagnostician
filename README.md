@@ -10,8 +10,7 @@ Process Diagnostician (프로세스 진단사)
 #### Q1. 이 프로그램(Process Diagnostician)을 만들기로 마음 먹은 이유는 무엇인가? 
 ##### A. <2019-11-11 23:15>
 >컴퓨터는 우리가 생각하는 것보다 훨씬 **위험에 노출**되어 있다.
-<br/>
->옛날, 필자는 좀비PC에 걸려 한껏 고생했던 기억이 있다. 그 당시에 어떤 프로세스가 바이러스인지 알았다면 포맷이라는 마지막 수단까지 쓰지 않았을 것이다. 그 이후로, 출처가 불분명한 프로세스를 보면 항상 구글링을 하거나 바이러스 검사를 해본다. 그래서 그것을 도울 수 있는 **프로세스들을 진단하는 프로그램** 을 만들기로 했다.<br/>
+<br/>옛날, 필자는 좀비PC에 걸려 한껏 고생했던 기억이 있다. 그 당시에 어떤 프로세스가 바이러스인지 알았다면 포맷이라는 마지막 수단까지 쓰지 않았을 것이다. 그 이후로, 출처가 불분명한 프로세스를 보면 항상 구글링을 하거나 바이러스 검사를 해본다. 그래서 그것을 도울 수 있는 **프로세스들을 진단하는 프로그램** 을 만들기로 했다.<br/>
 
 <br/>
 
@@ -32,34 +31,76 @@ Process Diagnostician (프로세스 진단사)
 
 <br/>
 
-### 2. 개발 환경 및 요구 조건
+### 2. 개발 환경 및 설치 방법
 ---------------------------
 #### 개발 환경 : ubuntu-18.04.3-desktop-amd64 설치 패키지 권장 옵션으로 설치.
-#### 빌드 시 필요한 패키지 목록 : 추후 공지.
-#### 프로그램 동작에 필요한 패키지 목록 : build-essential
-##### * build-essential 설치 방법 : 터미널에서 sudo apt install build-essential 입력 후 설치하면 된다.
+#### 빌드 시 필요한 패키지 목록 : gcc, python3, python-pip, requests(pip), git
+#### 프로그램 동작에 필요한 패키지 목록 : 빌드 시 필요한 패키지 목록, build-essential 
+**<설치 방법>**
+<br/>
+
+아래 내용을 순서대로 따라하면 된다.
+
+> * sudo apt update
+
+update 하는데 E: Some index files failed to download.. 오류가 뜰 때는 아래 두 줄을 입력하면 된다.
+<br/>sudo vi /etc/apt/sources.list
+<br/>:%s/kr.archive.ubuntu.com/ftp.daum.net
+<br/>
+
+> * sudo apt install gcc
+
+> * sudo apt install build-essential
+
+> * sudo apt install python-pip
+
+> * sudo pip install requests
+
+> * sudo apt install git
+
+> * git clone https://github.com/ahdelron/ERICA_Process-Diagnostician.git
+
+* 여기까지 모두 했다면 ERICA_Process-Diagnostician 폴더 안에서
+
+> * sudo ./process-diagnostician
 
 <br/>
 
-### 3. 프로그램 실행 방법 (Clone 방법)
---------------------------------------------
-#### 추후 안내.
-
-<br/>
-
-### 4. 프로그램 실행 화면
+### 3. 프로그램 실행 화면
 ------------------------
-#### 추후 업로드.
+
+* 프로그램 진입점 인터페이스
 
 <br/>
 
-### 5. 기능 안내
-------------------
-#### 추후 안내.
+![0](https://user-images.githubusercontent.com/55177359/71321380-b927b580-24fb-11ea-9308-e21ae2b84d16.PNG)
+
+<br/>
+<br/>
+
+* 현재 실행되고 있는 프로세스 목록 보기 (in Linux)
 
 <br/>
 
-### 6. TroubleShooting Note
+![1](https://user-images.githubusercontent.com/55177359/71321372-aad99980-24fb-11ea-89fc-6694c5431dae.gif)
+
+<br/>
+<br/>
+
+* 선택한 PID의 파일을 VirusTotal에 진단 요청한 뒤 파일의 진단 결과 링크와 sha1, sha256, md5 값 보여주기
+
+<br/>
+
+![2](https://user-images.githubusercontent.com/55177359/71321374-ad3bf380-24fb-11ea-9ef0-c588ebb32afa.gif)
+
+<br/>
+
+<!--![3](https://user-images.githubusercontent.com/55177359/71321375-af05b700-24fb-11ea-9f4f-a00ab3e7973a.gif)-->
+<!--![4](https://user-images.githubusercontent.com/55177359/71321376-b036e400-24fb-11ea-8a21-2ef1307e43e0.gif)-->
+
+<br/>
+
+### 4. TroubleShooting Note
 ------------------------------
 >\<YYYY-MM-DD HH:MM\> Error, Solution. \<\< **이런 식으로 작성될 것입니다.**
 
@@ -129,7 +170,7 @@ open 함수 사용할 때와 nftw 함수를 사용할 때, 조심해야 한다.
 
 <br/>
 
-### 7. ** 기능 구현 일지
+### 5. 기능 구현 일지
 --------------------------
 **\<2019-11-13 22:16\>** Terminal에서 나오는 결과 값을 구하고 싶다. 리눅스API를 사용할까? 아니면 터미널의 출력 값을 파일로 받아올까? ( '> .txt' 이용)
 <br/>

@@ -340,7 +340,7 @@ int main(void) {
 				cprintf(CLR_BOLDGREEN, "\n%s",
 						"--PROCESS DIAGNOSTICIAN MANUAL--");
 				cprintf(CLR_DEFAULT, "\n%s\n%s",
-						" Fisrt, View all processes.",
+						" First, View all processes.",
 						" Second, If you find suspected process, you should enter the command \"2 pid\" as like below.");
 				cprintf(CLR_BLUE, "\n%s\n", "> 2 1234");
 				break;

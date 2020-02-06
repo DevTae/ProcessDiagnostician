@@ -2,7 +2,7 @@ Process Diagnostician (프로세스 진단사)
 =======================================
 <br/>
 
-<div style="text-align:right">2019061658 김태현</div>
+<div style="text-align:right">김태현</div>
 <br/>
 
 ### 1. 개발 돌입하기 전에..
